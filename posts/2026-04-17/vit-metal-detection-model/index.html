@@ -112,8 +112,8 @@
   "keywords": [
     "research", "AI", "first"
   ],
-  "articleBody": "Table of Contents asdf fdas Deep Dive Getting Started 1 [getting started 2](#getting started) asdf just ome content here!\nfdas just some content here!\nDeep Dive ",
-  "wordCount" : "26",
+  "articleBody": " Table of Contents Introduction Background / Goal Related Work Approach Dataset Planned Experiments Fixing Imbalances Future Steps Experiments \u0026 Results Experiment 1: Experiment 2: Experiment 3: Experiment 4: Experiment 5: Conclusion Recap! Current Limitations :c Future Work summary References Introduction just ome content here!\nBackground / Goals Related Work Pre-Deep Learning:\nPretty much these are early methods that used handicrafted features (Gabor Filters, LBP) with SVM’s, but mostly struggled to generalize across conditions\nResNet (He et al., 2016):\nIntroduced a deep residual learning algorithm, which now became the standard backbone for any recent ViT (Vision Transformers) model\nTransfer Learning:\nThis is the practice of using a fine-tuned pretrained CNN model on small industrial datasets\nClass Imbalance:\nA persistent challenge that rules over GC10-DET (our dataset), that is later addressed via weighted losses and many oversampling strategies\nAdvanced Detectors:\nRecently this comes in the form of: YOLO, R-CNN’s, and ViT for detection tasks\nOur Baseline:\nIf we need a classification with limited data, a fine-tuned ResNet remains a competitive baseline.\nApproach Basically, we took a pretrained ResNet 18 and fine-tuned it for our 10-class problem. Resizing all images to 224x224 and normalize it using ImageNet’s mean and standard deviation; required since it’s what the pretrained weights are expecting.\nWe then split the data to a 75/15/10 \u003c-\u003e train/val/test split with a fixed random seed for reproducibility. But this brings the issue of of handling class imbalances.\nWe do this by using a WeightedRandomSampler, which oversamples rare classes in each batch. Importantly, we then used an unweighted CrossEntropyLoss since any balances could happen only through the sampler to avoid double-counting.\nTherefore, by also training with Adam (an optimizer that adjusts learning rates during training) at a learning rate of 0.001, a batch size of 32, and 25 epochs with the CosineAnnealingLr method to gain metrics such as:\nnormalized confusion matrix\nprecision/recall/F1\nCohen’s Kappa\nPlanned Experiments To elaborate more, we made three planned experiments at the start of this project!\nRegular Canny Edge Detection - Where we just highlighted surface features (like oil spots, cracks, creases, and other structural anomalies)\nWeld Seam Analysis - Analyzed any weld seams for cracks / incomplete fusions using close-up images. Then applied a Canny Edge Detection model to highlight seam irregularities along those weld lines (to see if it can detect irregularities that might be difficult to spot normally)\nEvaluation Metrics - Maintained a confidence score measuring how close a predicted class is to the TRUE defect type\nReally, we intended to use a Canny Edge Detector as a preprocessing step to highlight structural defect features, and then apply it specifically to a weld seam analysis, and track a confidence score as our evaluation metric\nHowever, as you’ll see later, Experiment 1 directly tests this detection idea (but it didn’t work the way we expected)\nDataset This GC10-DET dataset contains images that are collected in real industrial settings across 10 surface defect classes\nIn other words, this dataset contains REAL industrial images across 10 defect classes. As you can see the class imbalance is very severe since “silk_spot” has 497 training images (highlighted in green), while the “crease” class only has 45 training images (highlighted in red). Thats obviously an 11x difference!\nMeaning that without any correction, the model would just learn to predict “silk_spot” constantly since that minimizes our loss. Which is WHY the WeightedRandomSampler is super critical!\nTo see more details -\u003e look in next section!*\nSplitting the Dataset* Here is the actual code from our program for how we split the data. We first carve out the test set from the full dataset, then split the remaining portion into its train and validation. Meaning that the fixed generator means anyone running this code will get identical splits\n## USED TO PREVENT OVERFITTING ! ! ! test_ratio = 0.10 val_ratio = 0.15 train_ratio = 1 - test_ratio - val_ratio generator = torch.Generator() generator.manual_seed(42) train_val, test = random_split( dataset, [train_val_size, test_size], generator=generator ) train, val = random_split( train_val, [train_size, val_size], generator=generator ) Fixing The Imbalances ! So why\nFuture Steps ! Experiments \u0026 Results Experiment 1: Experiment 2: Experiment 3: Experiment 4: Experiment 5: Conclusion Recap! Limitations! Future Work Summary References ",
+  "wordCount" : "695",
   "inLanguage": "en",
   "datePublished": "2026-04-17T00:00:00Z",
   "dateModified": "2026-04-17T00:00:00Z",
@@ -203,23 +203,185 @@
     <div class="post-description">
       description???
     </div>
-    <div class="post-meta"><span title='2026-04-17 00:00:00 +0000 UTC'>April 17, 2026</span>&nbsp;·&nbsp;<span>1 min</span>&nbsp;·&nbsp;<span>Jorge Silva-Baltierra, Rohit Vummadi</span>
+    <div class="post-meta"><span title='2026-04-17 00:00:00 +0000 UTC'>April 17, 2026</span>&nbsp;·&nbsp;<span>4 min</span>&nbsp;·&nbsp;<span>Jorge Silva-Baltierra, Rohit Vummadi</span>
 
 </div>
   </header> 
-  <div class="post-content md-content"><h1 id="table-of-contents">Table of Contents<a hidden class="anchor" aria-hidden="true" href="#table-of-contents">#</a></h1>
+  <div class="post-content md-content"><!-- raw HTML omitted -->
+<h1 id="table-of-contents">Table of Contents<a hidden class="anchor" aria-hidden="true" href="#table-of-contents">#</a></h1>
 <ol>
-<li><a href="#adsf">asdf</a></li>
-<li><a href="#fdas">fdas</a></li>
-<li><a href="#deep-dive">Deep Dive</a></li>
-<li><a href="#getting-started">Getting Started 1</a></li>
-<li>[getting started 2](#getting started)</li>
+<li><a href="#intro">Introduction</a>
+<ul>
+<li><a href="#back-goals">Background / Goal</a></li>
+<li><a href="#related">Related Work</a></li>
+</ul>
+</li>
+<li><a href="#approach">Approach</a>
+<ul>
+<li><a href="#dataset">Dataset</a></li>
+<li><a href="#planned">Planned Experiments</a></li>
+<li><a href="#fixing-imbalances">Fixing Imbalances</a></li>
+<li><a href="#future-steps">Future Steps</a></li>
+</ul>
+</li>
+<li><a href="#experi-results">Experiments &amp; Results</a>
+<ul>
+<li><a href="#experi_1">Experiment 1:</a></li>
+<li><a href="#experi_2">Experiment 2:</a></li>
+<li><a href="#experi_3">Experiment 3:</a></li>
+<li><a href="#experi_4">Experiment 4:</a></li>
+<li><a href="#experi_5">Experiment 5:</a></li>
+</ul>
+</li>
+<li><a href="#conclusion">Conclusion</a>
+<ul>
+<li><a href="#recap">Recap!</a></li>
+<li><a href="#limitations">Current Limitations :c</a></li>
+<li><a href="#the-future">Future Work</a></li>
+<li><a href="#summary">summary</a></li>
+</ul>
+</li>
+<li><a href="#references">References</a></li>
 </ol>
-<h2 id="asdf">asdf<a hidden class="anchor" aria-hidden="true" href="#asdf">#</a></h2>
+<!-- raw HTML omitted -->
+<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<h2 id="introduction">Introduction<a hidden class="anchor" aria-hidden="true" href="#introduction">#</a></h2>
 <p>just ome content here!</p>
-<h2 id="fdas">fdas<a hidden class="anchor" aria-hidden="true" href="#fdas">#</a></h2>
-<p>just some content here!</p>
-<h2 id="deep-dive">Deep Dive<a hidden class="anchor" aria-hidden="true" href="#deep-dive">#</a></h2>
+<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<h3 id="background--goals">Background / Goals<a hidden class="anchor" aria-hidden="true" href="#background--goals">#</a></h3>
+<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<h3 id="related-work">Related Work<a hidden class="anchor" aria-hidden="true" href="#related-work">#</a></h3>
+<blockquote>
+<p><strong>Pre-Deep Learning:</strong></p>
+</blockquote>
+<p>Pretty much these are early methods that used handicrafted features (Gabor Filters, LBP) with SVM&rsquo;s, but mostly struggled to generalize across conditions</p>
+<blockquote>
+<p><strong>ResNet (He et al., 2016):</strong></p>
+</blockquote>
+<p>Introduced a deep residual learning algorithm, which now became the standard
+backbone for any recent ViT (Vision Transformers) model</p>
+<blockquote>
+<p><strong>Transfer Learning:</strong></p>
+</blockquote>
+<p>This is the practice of using a fine-tuned pretrained CNN model on small industrial datasets</p>
+<blockquote>
+<p><strong>Class Imbalance:</strong></p>
+</blockquote>
+<p>A persistent challenge that rules over GC10-DET (our dataset), that is later addressed via
+weighted losses and many oversampling strategies</p>
+<blockquote>
+<p><strong>Advanced Detectors:</strong></p>
+</blockquote>
+<p>Recently this comes in the form of: YOLO, R-CNN&rsquo;s, and ViT for detection tasks</p>
+<blockquote>
+<p><strong>Our Baseline:</strong></p>
+</blockquote>
+<p>If we need a classification with limited data, a fine-tuned ResNet remains a competitive baseline.</p>
+<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<h2 id="approach">Approach<a hidden class="anchor" aria-hidden="true" href="#approach">#</a></h2>
+<p>Basically, we took a pretrained ResNet 18 and fine-tuned it for our 10-class problem. Resizing all images to 224x224 and normalize it using ImageNet&rsquo;s mean and standard deviation; required since it&rsquo;s what the pretrained weights are expecting.</p>
+<p>We then split the data to a 75/15/10 &lt;-&gt; train/val/test split with a fixed random seed for reproducibility. But this brings the issue of  of handling class imbalances.</p>
+<p>We do this by using a WeightedRandomSampler, which oversamples rare classes in each batch. Importantly, we then used an unweighted CrossEntropyLoss since any balances could happen only through the sampler to avoid double-counting.</p>
+<p>Therefore, by also training with Adam (an optimizer that adjusts learning rates during training) at a learning rate of 0.001, a batch size of 32, and 25 epochs with the CosineAnnealingLr method to gain metrics such as:</p>
+<ul>
+<li>
+<p><strong>normalized confusion matrix</strong></p>
+</li>
+<li>
+<p><strong>precision/recall/F1</strong></p>
+</li>
+<li>
+<p><strong>Cohen&rsquo;s Kappa</strong></p>
+</li>
+</ul>
+<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<h3 id="planned-experiments">Planned Experiments<a hidden class="anchor" aria-hidden="true" href="#planned-experiments">#</a></h3>
+<p>To elaborate more, we made three planned experiments at the start of this project!</p>
+<ul>
+<li>
+<p><strong>Regular Canny Edge Detection</strong> -
+Where we just  highlighted surface features (like oil spots, cracks, creases, and other structural anomalies)</p>
+</li>
+<li>
+<p><strong>Weld Seam Analysis</strong> -
+Analyzed any weld seams for cracks / incomplete fusions using close-up images. Then applied a Canny Edge
+Detection model to highlight seam irregularities along those weld lines (to see if it can detect
+irregularities that might be difficult to spot normally)</p>
+</li>
+<li>
+<p><strong>Evaluation Metrics</strong> -
+Maintained a confidence score measuring how close a predicted class is to the TRUE defect type</p>
+</li>
+</ul>
+<p>Really, we intended to use a Canny Edge Detector as a preprocessing step to highlight structural defect features, and then apply it specifically to a weld seam analysis, and track a confidence score as our evaluation metric</p>
+<p>However, as you&rsquo;ll see later, Experiment 1 directly tests this detection idea (but it didn&rsquo;t work the way we expected)</p>
+<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<h3 id="dataset">Dataset<a hidden class="anchor" aria-hidden="true" href="#dataset">#</a></h3>
+<p>This GC10-DET dataset contains images that are collected in real industrial settings across 10 surface defect classes</p>
+<blockquote>
+<p>In other words, this dataset contains REAL industrial images across 10 defect classes.
+As you can see the class imbalance is very severe since &ldquo;silk_spot&rdquo; has 497 training images
+(highlighted in green), while the &ldquo;crease&rdquo; class only has 45 training images (highlighted in red).
+Thats obviously an 11x difference!</p>
+</blockquote>
+<blockquote>
+<p>Meaning that without any correction, the model would just learn to predict &ldquo;silk_spot&rdquo;
+constantly since that minimizes our loss. Which is WHY the WeightedRandomSampler is super critical!</p>
+</blockquote>
+<blockquote>
+<p>To see more details -&gt; look in next section!*</p>
+</blockquote>
+<p><img alt="GC10-DET_dataset" loading="lazy" src="/posts/2026-04-17/vit-metal-detection-model/dataset.png"></p>
+<h4 id="splitting-the-dataset">Splitting the Dataset*<a hidden class="anchor" aria-hidden="true" href="#splitting-the-dataset">#</a></h4>
+<p>Here is the actual code from our program for how we split the data. We first carve out the test set from the full dataset, then split the remaining portion into its train and validation. Meaning that the fixed generator means anyone running this code will get identical splits</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e">## USED TO PREVENT OVERFITTING ! ! !</span>
+</span></span><span style="display:flex;"><span>test_ratio <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.10</span>
+</span></span><span style="display:flex;"><span>val_ratio <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.15</span>
+</span></span><span style="display:flex;"><span>train_ratio <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">-</span> test_ratio <span style="color:#f92672">-</span> val_ratio
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>generator <span style="color:#f92672">=</span> torch<span style="color:#f92672">.</span>Generator()
+</span></span><span style="display:flex;"><span>generator<span style="color:#f92672">.</span>manual_seed(<span style="color:#ae81ff">42</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>train_val, test <span style="color:#f92672">=</span> random_split(
+</span></span><span style="display:flex;"><span>    dataset,
+</span></span><span style="display:flex;"><span>    [train_val_size, test_size],
+</span></span><span style="display:flex;"><span>    generator<span style="color:#f92672">=</span>generator
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>train, val <span style="color:#f92672">=</span> random_split(
+</span></span><span style="display:flex;"><span>    train_val,
+</span></span><span style="display:flex;"><span>    [train_size, val_size],
+</span></span><span style="display:flex;"><span>    generator<span style="color:#f92672">=</span>generator
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<h3 id="fixing-the-imbalances-">Fixing The Imbalances !<a hidden class="anchor" aria-hidden="true" href="#fixing-the-imbalances-">#</a></h3>
+<p>So why</p>
+<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<h3 id="future-steps-">Future Steps !<a hidden class="anchor" aria-hidden="true" href="#future-steps-">#</a></h3>
+<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<h2 id="experiments--results">Experiments &amp; Results<a hidden class="anchor" aria-hidden="true" href="#experiments--results">#</a></h2>
+<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<h3 id="experiment-1">Experiment 1:<a hidden class="anchor" aria-hidden="true" href="#experiment-1">#</a></h3>
+<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<h3 id="experiment-2">Experiment 2:<a hidden class="anchor" aria-hidden="true" href="#experiment-2">#</a></h3>
+<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<h3 id="experiment-3">Experiment 3:<a hidden class="anchor" aria-hidden="true" href="#experiment-3">#</a></h3>
+<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<h3 id="experiment-4">Experiment 4:<a hidden class="anchor" aria-hidden="true" href="#experiment-4">#</a></h3>
+<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<h3 id="experiment-5">Experiment 5:<a hidden class="anchor" aria-hidden="true" href="#experiment-5">#</a></h3>
+<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<h2 id="conclusion">Conclusion<a hidden class="anchor" aria-hidden="true" href="#conclusion">#</a></h2>
+<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<h3 id="recap">Recap!<a hidden class="anchor" aria-hidden="true" href="#recap">#</a></h3>
+<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<h3 id="limitations">Limitations!<a hidden class="anchor" aria-hidden="true" href="#limitations">#</a></h3>
+<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<h3 id="future-work">Future Work<a hidden class="anchor" aria-hidden="true" href="#future-work">#</a></h3>
+<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<h3 id="summary">Summary<a hidden class="anchor" aria-hidden="true" href="#summary">#</a></h3>
+<p><!-- raw HTML omitted --><!-- raw HTML omitted --></p>
+<h2 id="references">References<a hidden class="anchor" aria-hidden="true" href="#references">#</a></h2>
 
 
   </div>
