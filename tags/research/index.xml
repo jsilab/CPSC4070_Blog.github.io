@@ -13,7 +13,7 @@
       <link>https://jsilab.github.io/posts/2026-04-17/vit-metal-detection-model/</link>
       <pubDate>Fri, 17 Apr 2026 00:00:00 +0000</pubDate>
       <guid>https://jsilab.github.io/posts/2026-04-17/vit-metal-detection-model/</guid>
-      <description>description???</description>
+      <description>Fine-tuning ResNet18 on the GC10-DET dataset for 10-class metal surface defect classes</description>
     </item>
   </channel>
 </rss>
